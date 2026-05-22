@@ -481,6 +481,9 @@ html = """<!doctype html>
   .exporting thead tr:nth-child(2) th,
   .exporting td.brand { position: static !important; }
   .exporting .controls { display: none !important; }
+  .exporting #exportArea { display: block !important; width: max-content; min-width: 1800px; background: #fff; padding: 8px; }
+  .exporting .summary { margin-bottom: 14px; }
+  .exporting .sum-card { box-shadow: none; border: 1px solid #d0d0d0; }
 
   .hidden { display: none !important; }
 
@@ -539,6 +542,7 @@ html = """<!doctype html>
     <button class="btn-export" id="btnPng" type="button">Exportar imagen</button>
   </div>
 
+  <div id="exportArea">
   <div id="summary" class="summary"></div>
 
   <div class="tbl-wrap">
@@ -573,6 +577,7 @@ html = """<!doctype html>
       <tbody id="body"></tbody>
     </table>
   </div>
+  </div><!-- /exportArea -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -763,10 +768,11 @@ document.querySelectorAll('th[data-sort]').forEach(th=>{
 async function captureTable(){
   document.body.classList.add('exporting');
   await new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r)));
-  const target = document.querySelector('#tbl');
+  const target = document.querySelector('#exportArea');
+  const table = document.querySelector('#tbl');
   const canvas = await html2canvas(target, {
     scale: 2, backgroundColor: '#ffffff', useCORS: true,
-    windowWidth: Math.max(1400, target.scrollWidth),
+    windowWidth: Math.max(1400, table.scrollWidth + 40),
   });
   document.body.classList.remove('exporting');
   return canvas;
