@@ -100,6 +100,37 @@
   .exporting .controls { display: none !important; }
 
   .hidden { display: none !important; }
+
+  /* Resumen */
+  .summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px; margin-bottom: 12px;
+  }
+  .sum-card {
+    background: var(--card); border-radius: 10px; padding: 10px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06); border-left: 4px solid #888;
+  }
+  .sum-card.sum-m { border-left-color: var(--mat); }
+  .sum-card.sum-y { border-left-color: var(--ytd); }
+  .sum-card.sum-p { border-left-color: var(--mes); }
+  .sum-card.sum-t { border-left-color: var(--trim); }
+  .sum-card.sum-s { border-left-color: var(--sem); }
+  .sum-h { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .sum-desc { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .sum-line { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+  .chip b { font-size: 13px; }
+  .chip-pos { background: #e6f4ea; color: #0a6e0a; }
+  .chip-neg { background: #fdecec; color: #9c0006; }
+  .chip-flat{ background: #eee; color: #444; }
+  .sum-sub { font-size: 11px; color: var(--muted); }
+  .sum-sub b { color: var(--txt); }
+  @media (max-width: 760px) {
+    .summary { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .sum-card { padding: 8px; }
+    .sum-h { font-size: 12px; }
+    .chip { font-size: 11px; padding: 2px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -124,6 +155,8 @@
     <button class="btn-export" id="btnPdf" type="button">Exportar PDF</button>
     <button class="btn-export" id="btnPng" type="button">Exportar imagen</button>
   </div>
+
+  <div id="summary" class="summary"></div>
 
   <div class="tbl-wrap">
     <table id="tbl">
@@ -233,16 +266,9 @@ function getSortValue(row, key){
 function renderDesktop(seg){
   const body = document.getElementById('body');
   body.innerHTML = '';
-  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0,
-           ta:0,tc:0,mta:0,mtc:0,sa:0,sc:0,msa6:0,msc6:0};
   const rows = [];
   for(const brand of BRANDS){
     const d = DATA[seg][brand]; if(!d) continue;
-    T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
-    T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
-    T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
-    T.ta+=d.ta; T.tc+=d.tc; T.mta+=d.mta; T.mtc+=d.mtc;
-    T.sa+=d.sa; T.sc+=d.sc; T.msa6+=d.msa6; T.msc6+=d.msc6;
     if (seg === 'POPULAR' && (d.ba + d.bc + d.ya + d.yc + d.pa + d.pc) === 0) continue;
     rows.push(buildRow(brand, d));
   }
@@ -254,13 +280,50 @@ function renderDesktop(seg){
       return dir * ((va||0) - (vb||0));
     });
   }
-  const totalRow = buildRow('TOTAL CARTERA', T);
   body.insertAdjacentHTML('beforeend', rows.map(r=>rowHTML(r,false)).join(''));
-  body.insertAdjacentHTML('beforeend', rowHTML(totalRow, true));
   document.querySelectorAll('th[data-sort]').forEach(th=>{
     th.classList.remove('asc','desc');
     if (sortState.key === th.dataset.sort && sortState.dir) th.classList.add(sortState.dir);
   });
+  renderSummary(rows);
+}
+
+function renderSummary(rows){
+  /* Conteos IE>100, IE<100, y de IE<100 cuántos crecen en U, para cada bloque relevante */
+  const blocks = [
+    {key:'m', label:'MAT', desc:'Abr-26 vs Abr-25 (12m)'},
+    {key:'y', label:'YTD', desc:'Ene-Abr 26 vs 25'},
+    {key:'p', label:'MES', desc:'Abr 26 vs Abr 25'},
+    {key:'t', label:'TRIM', desc:'Feb-Abr 26 vs 25'},
+    {key:'s', label:'SEM', desc:'Nov 25-Abr 26 vs Nov 24-Abr 25'},
+  ];
+  const html = blocks.map(b=>{
+    let pos = 0, neg = 0, flat = 0, nuevas = 0, sinDato = 0, negCreceU = 0;
+    for (const r of rows){
+      const x = r[b.key];
+      if (x.ba === 0 && x.bc === 0) { sinDato++; continue; }
+      if (x.ba === 0) { nuevas++; continue; }
+      if (x.ie > 100) pos++;
+      else if (x.ie < 100) {
+        neg++;
+        if (x.bc > x.ba) negCreceU++;
+      } else flat++;
+    }
+    const totalCmp = pos + neg + flat;
+    return `
+      <div class="sum-card sum-${b.key}">
+        <div class="sum-h"><span>${b.label}</span><span class="sum-desc">${b.desc}</span></div>
+        <div class="sum-line">
+          <span class="chip chip-pos">IE &gt; 100: <b>${pos}</b></span>
+          <span class="chip chip-neg">IE &lt; 100: <b>${neg}</b></span>
+          ${flat?`<span class="chip chip-flat">IE = 100: <b>${flat}</b></span>`:''}
+        </div>
+        <div class="sum-sub">De las ${neg} con IE&lt;100, <b>${negCreceU}</b> crecen en U (mercado creció más)
+          ${nuevas?` · Nuevas (sin base): <b>${nuevas}</b>`:''}
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('summary').innerHTML = html;
 }
 
 function applyBlockVisibility(){
