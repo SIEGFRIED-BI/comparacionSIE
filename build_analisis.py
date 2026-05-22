@@ -587,7 +587,7 @@ const DATA = __DATA__;
 
 function fmtNum(x){ return Math.round(x).toLocaleString('es-AR'); }
 function fmtPct(x){ return (x*100).toFixed(1).replace('.', ',') + '%'; }
-function fmtIE(x){ return x.toFixed(1).replace('.', ','); }
+function fmtIE(x){ return Math.round(x).toString(); }
 function fmtPP(x){ const s = x>0?'+':''; return s + x.toFixed(2).replace('.', ',') + ' pp'; }
 
 function computeBlock(ba, bc, ma, mc){
