@@ -289,19 +289,18 @@ function renderDesktop(seg){
 }
 
 function renderSummary(rows){
-  /* Conteos IE>100, IE<100, y de IE<100 cuántos crecen en U, para cada bloque relevante */
   const blocks = [
-    {key:'m', label:'MAT', desc:'Abr-26 vs Abr-25 (12m)'},
-    {key:'y', label:'YTD', desc:'Ene-Abr 26 vs 25'},
-    {key:'p', label:'MES', desc:'Abr 26 vs Abr 25'},
-    {key:'t', label:'TRIM', desc:'Feb-Abr 26 vs 25'},
-    {key:'s', label:'SEM', desc:'Nov 25-Abr 26 vs Nov 24-Abr 25'},
+    {key:'m', name:'mat',  label:'MAT',  desc:'Abr-26 vs Abr-25 (12m)'},
+    {key:'y', name:'ytd',  label:'YTD',  desc:'Ene-Abr 26 vs 25'},
+    {key:'p', name:'mes',  label:'MES',  desc:'Abr 26 vs Abr 25'},
+    {key:'t', name:'trim', label:'TRIM', desc:'Feb-Abr 26 vs 25'},
+    {key:'s', name:'sem',  label:'SEM',  desc:'Nov 25-Abr 26 vs Nov 24-Abr 25'},
   ];
   const html = blocks.map(b=>{
-    let pos = 0, neg = 0, flat = 0, nuevas = 0, sinDato = 0, negCreceU = 0;
+    let pos = 0, neg = 0, flat = 0, nuevas = 0, negCreceU = 0;
     for (const r of rows){
       const x = r[b.key];
-      if (x.ba === 0 && x.bc === 0) { sinDato++; continue; }
+      if (x.ba === 0 && x.bc === 0) continue;
       if (x.ba === 0) { nuevas++; continue; }
       if (x.ie > 100) pos++;
       else if (x.ie < 100) {
@@ -309,9 +308,8 @@ function renderSummary(rows){
         if (x.bc > x.ba) negCreceU++;
       } else flat++;
     }
-    const totalCmp = pos + neg + flat;
     return `
-      <div class="sum-card sum-${b.key}">
+      <div class="sum-card sum-${b.key} blk-${b.name}">
         <div class="sum-h"><span>${b.label}</span><span class="sum-desc">${b.desc}</span></div>
         <div class="sum-line">
           <span class="chip chip-pos">IE &gt; 100: <b>${pos}</b></span>
