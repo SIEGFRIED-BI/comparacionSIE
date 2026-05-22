@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<title>Comparativa Marca vs Mercado</title>
+<style>
+  :root {
+    --mat: #4472C4; --ytd: #C65911; --mes: #548235;
+    --bg: #f4f6fb; --card: #ffffff; --txt: #222; --muted: #6b7280;
+    --line: #d0d0d0; --hdr: #305496;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, system-ui, Arial, sans-serif;
+         margin: 0; padding: 16px; color: var(--txt); background: var(--bg);
+         -webkit-text-size-adjust: 100%; }
+  h1 { font-size: 18px; margin: 0 0 4px 0; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    background: var(--card); padding: 10px 12px; border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05); margin-bottom: 12px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .controls label { font-weight: 600; font-size: 13px; }
+  .seg-btns { display: flex; flex-wrap: wrap; }
+  .seg-btns button {
+    padding: 8px 14px; border: 1px solid #888; background: #fff; cursor: pointer;
+    font-weight: 600; font-size: 13px; min-height: 38px;
+  }
+  .seg-btns button.active { background: var(--hdr); color: #fff; border-color: var(--hdr); }
+  .seg-btns button:first-child { border-radius: 6px 0 0 6px; }
+  .seg-btns button:last-child  { border-radius: 0 6px 6px 0; }
+  .blk-toggle { display: inline-flex; gap: 4px; }
+  .blk-toggle label { font-size: 12px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px;
+                       cursor: pointer; user-select: none; background: #fff; }
+  .blk-toggle input { vertical-align: middle; margin-right: 4px; }
+  .search { flex: 1 1 160px; min-width: 140px; padding: 8px 10px; border-radius: 6px;
+            border: 1px solid #ccc; font-size: 13px; }
+
+  /* ----- DESKTOP / TABLET (table) ----- */
+  .desktop { display: block; }
+  .mobile  { display: none; }
+
+  .tbl-wrap { background: var(--card); border-radius: 10px; overflow: auto;
+              box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 1100px; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; }
+  th { background: var(--hdr); color: #fff; text-align: center; font-weight: 600;
+       position: sticky; top: 0; z-index: 2; }
+  th.mat { background: var(--mat); } th.ytd { background: var(--ytd); } th.mes { background: var(--mes); }
+  td.brand { font-weight: 700; background: #f7f9fc; white-space: nowrap; position: sticky; left: 0; z-index: 1;
+             border-right: 2px solid #c0c0c0; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr:nth-child(even) td:not(.brand) { background: #f9fbfd; }
+  td.good { background: #e6f4ea !important; color: #0a6e0a; }
+  td.bad  { background: #fdecec !important; color: #9c0006; }
+  td.neutral { color: #555; }
+  tr.total td { background: #FFE699 !important; font-weight: 800; }
+
+  /* ----- MOBILE (cards) ----- */
+  @media (max-width: 760px) {
+    body { padding: 10px; }
+    .desktop { display: none; }
+    .mobile  { display: block; }
+  }
+  .cards { display: grid; gap: 10px; }
+  .card {
+    background: var(--card); border-radius: 12px; padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .card .brand { font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .card .brand .mol { font-size: 11px; font-weight: 400; color: var(--muted); }
+  .blocks { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .block { border-radius: 8px; padding: 8px 10px; }
+  .block.mat { background: #eef3fc; } .block.ytd { background: #fdeede; } .block.mes { background: #ebf3e3; }
+  .block .label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 13px; }
+  .block .label .periodo { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
+    font-size: 12px; margin-top: 6px;
+  }
+  .grid .k { color: var(--muted); }
+  .grid .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .grid .v.good { color: #0a6e0a; }
+  .grid .v.bad  { color: #9c0006; }
+  .card.total { background: #fff9e6; border: 1px solid #f1c40f; }
+  .hidden { display: none !important; }
+
+  .footer { color: var(--muted); font-size: 11px; margin-top: 14px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Comparativa Marca vs Mercado (misma molécula, no-SIE)</h1>
+  <div class="sub">Fuente: AR_PM_FV_Standard May-22-2026</div>
+
+  <div class="controls">
+    <label>Segmento:</label>
+    <div class="seg-btns" id="segBtns">
+      <button data-seg="TOTAL" class="active">TOTAL</button>
+      <button data-seg="ETICO">ÉTICO</button>
+      <button data-seg="POPULAR">POPULAR</button>
+    </div>
+    <span class="blk-toggle">
+      <label><input type="checkbox" data-blk="mat" checked> MAT</label>
+      <label><input type="checkbox" data-blk="ytd" checked> YTD</label>
+      <label><input type="checkbox" data-blk="mes" checked> MES</label>
+    </span>
+    <input class="search" id="q" placeholder="Buscar marca..."/>
+  </div>
+
+  <div class="desktop">
+    <div class="tbl-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th rowspan="2">Marca</th>
+            <th class="mat" colspan="6">MAT (Apr 2026 vs Apr 2025)</th>
+            <th class="ytd" colspan="6">YTD (Ene-Abr 26 vs 25)</th>
+            <th class="mes" colspan="6">MES (Apr 2026 vs Apr 2025)</th>
+          </tr>
+          <tr>
+            <th class="mat">U Ant</th><th class="mat">U Act</th>
+            <th class="mat">MS% Ant</th><th class="mat">MS% Act</th>
+            <th class="mat">IE</th><th class="mat">Var pp</th>
+            <th class="ytd">U Ant</th><th class="ytd">U Act</th>
+            <th class="ytd">MS% Ant</th><th class="ytd">MS% Act</th>
+            <th class="ytd">IE</th><th class="ytd">Var pp</th>
+            <th class="mes">U Ant</th><th class="mes">U Act</th>
+            <th class="mes">MS% Ant</th><th class="mes">MS% Act</th>
+            <th class="mes">IE</th><th class="mes">Var pp</th>
+          </tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobile">
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <div class="footer">v3 · IE = ((Marca Act / Marca Ant) / (Mercado Act / Mercado Ant)) × 100</div>
+
+<script>
+const BRANDS = ["ACEMUK", "AIREAL", "HEXALER CORT", "ALIDIAL", "ALIDIAL L", "MOMETAX", "BACTRIM", "ACANTEX", "DECADRON", "MACROMAX", "CEFALEXINA", "CALCIO BASE", "ISIS FREE", "TRIP D3", "DELTROX", "ENTRESTO", "DILATREND", "ROXOLAN", "ROXOLAN PLUS", "SINTROM", "EMPAX", "SILTRAN", "METGLUCON", "TERLOC", "DIOVAN", "TELPRES", "DAURAN", "PIXABAN", "LEVITAL", "VALIUM", "PGB", "QTP", "MADOPAR", "ACNECLIN", "CLOBESOL", "MICOMAZOL", "MICROSONA", "PALDAR", "ROACCUTAN", "MAGNUS", "TETRALGIN", "LURAP", "BREXIL", "VALQUIR", "SIDERBLUT", "NEBILET", "EXFORGE", "ISIS NAT", "GYNODERM"];
+const DATA = {"TOTAL": {"ACEMUK": {"ba": 4213626.0, "bc": 3917115.0, "ma": 695033.0, "mc": 658902.0, "ya": 987563.0, "yc": 771512.0, "ymka": 185584.0, "ymkc": 156803.0, "pa": 405502.0, "pc": 307310.0, "mpa": 74006.0, "mpc": 49312.0}, "AIREAL": {"ba": 177683.0, "bc": 233496.0, "ma": 1309572.0, "mc": 1239591.0, "ya": 50640.0, "yc": 69995.0, "ymka": 356272.0, "ymkc": 329045.0, "pa": 17276.0, "pc": 23346.0, "mpa": 115951.0, "mpc": 101318.0}, "HEXALER CORT": {"ba": 818422.0, "bc": 754220.0, "ma": 2605615.0, "mc": 2595152.0, "ya": 203410.0, "yc": 176452.0, "ymka": 682853.0, "ymkc": 635310.0, "pa": 79083.0, "pc": 66707.0, "mpa": 252793.0, "mpc": 199451.0}, "ALIDIAL": {"ba": 155755.0, "bc": 202131.0, "ma": 2636870.0, "mc": 2504881.0, "ya": 49156.0, "yc": 61684.0, "ymka": 865641.0, "ymkc": 817544.0, "pa": 14465.0, "pc": 17911.0, "mpa": 314348.0, "mpc": 280385.0}, "ALIDIAL L": {"ba": 0.0, "bc": 5997.0, "ma": 439630.0, "mc": 498934.0, "ya": 0.0, "yc": 3572.0, "ymka": 142563.0, "ymkc": 153150.0, "pa": 0.0, "pc": 1149.0, "mpa": 39703.0, "mpc": 40708.0}, "MOMETAX": {"ba": 149489.0, "bc": 153459.0, "ma": 290235.0, "mc": 273023.0, "ya": 46389.0, "yc": 48749.0, "ymka": 81316.0, "ymkc": 79747.0, "pa": 11439.0, "pc": 11395.0, "mpa": 22064.0, "mpc": 21843.0}, "BACTRIM": {"ba": 1267722.0, "bc": 1341168.0, "ma": 150795.0, "mc": 170969.0, "ya": 448117.0, "yc": 461205.0, "ymka": 53723.0, "ymkc": 58881.0, "pa": 119877.0, "pc": 114011.0, "mpa": 13659.0, "mpc": 14886.0}, "ACANTEX": {"ba": 370740.0, "bc": 305437.0, "ma": 64627.0, "mc": 46881.0, "ya": 95089.0, "yc": 82213.0, "ymka": 14511.0, "ymkc": 11494.0, "pa": 32818.0, "pc": 22622.0, "mpa": 4431.0, "mpc": 3097.0}, "DECADRON": {"ba": 475509.0, "bc": 443399.0, "ma": 422704.0, "mc": 388143.0, "ya": 139599.0, "yc": 144282.0, "ymka": 125371.0, "ymkc": 119601.0, "pa": 37499.0, "pc": 37899.0, "mpa": 31553.0, "mpc": 34405.0}, "MACROMAX": {"ba": 134528.0, "bc": 146359.0, "ma": 2505661.0, "mc": 2159983.0, "ya": 30533.0, "yc": 29070.0, "ymka": 666900.0, "ymkc": 600817.0, "pa": 12091.0, "pc": 10060.0, "mpa": 215404.0, "mpc": 142589.0}, "CEFALEXINA": {"ba": 928035.0, "bc": 963942.0, "ma": 779743.0, "mc": 701718.0, "ya": 323825.0, "yc": 332149.0, "ymka": 265904.0, "ymkc": 236841.0, "pa": 80331.0, "pc": 82232.0, "mpa": 63170.0, "mpc": 58759.0}, "CALCIO BASE": {"ba": 394160.0, "bc": 410025.0, "ma": 1465489.0, "mc": 1447823.0, "ya": 121160.0, "yc": 132531.0, "ymka": 435147.0, "ymkc": 461078.0, "pa": 32291.0, "pc": 35350.0, "mpa": 117801.0, "mpc": 121011.0}, "ISIS FREE": {"ba": 526920.0, "bc": 641565.0, "ma": 1105317.0, "mc": 1392154.0, "ya": 192628.0, "yc": 222491.0, "ymka": 402177.0, "ymkc": 500195.0, "pa": 54684.0, "pc": 55410.0, "mpa": 114381.0, "mpc": 127276.0}, "TRIP D3": {"ba": 224368.0, "bc": 285977.0, "ma": 7192376.0, "mc": 7537247.0, "ya": 67759.0, "yc": 84581.0, "ymka": 2097948.0, "ymkc": 2314859.0, "pa": 21134.0, "pc": 22600.0, "mpa": 594478.0, "mpc": 621995.0}, "DELTROX": {"ba": 3981.0, "bc": 6559.0, "ma": 1015791.0, "mc": 935592.0, "ya": 1278.0, "yc": 1681.0, "ymka": 302068.0, "ymkc": 297321.0, "pa": 325.0, "pc": 424.0, "mpa": 79406.0, "mpc": 75635.0}, "ENTRESTO": {"ba": 197784.0, "bc": 218376.0, "ma": 146607.0, "mc": 163750.0, "ya": 69773.0, "yc": 71947.0, "ymka": 47917.0, "ymkc": 54608.0, "pa": 17256.0, "pc": 19503.0, "mpa": 12581.0, "mpc": 13363.0}, "DILATREND": {"ba": 860568.0, "bc": 759260.0, "ma": 4549303.0, "mc": 4200315.0, "ya": 268014.0, "yc": 238568.0, "ymka": 1399712.0, "ymkc": 1364127.0, "pa": 71048.0, "pc": 58674.0, "mpa": 361864.0, "mpc": 348558.0}, "ROXOLAN": {"ba": 203685.0, "bc": 205797.0, "ma": 9644957.0, "mc": 9770796.0, "ya": 61717.0, "yc": 67437.0, "ymka": 2953537.0, "ymkc": 3266447.0, "pa": 16687.0, "pc": 16842.0, "mpa": 783322.0, "mpc": 848212.0}, "ROXOLAN PLUS": {"ba": 18803.0, "bc": 36655.0, "ma": 853457.0, "mc": 1179511.0, "ya": 7200.0, "yc": 13626.0, "ymka": 281726.0, "ymkc": 438186.0, "pa": 2114.0, "pc": 3479.0, "mpa": 78835.0, "mpc": 122765.0}, "SINTROM": {"ba": 780746.0, "bc": 746887.0, "ma": 208993.0, "mc": 198462.0, "ya": 239114.0, "yc": 239681.0, "ymka": 67859.0, "ymkc": 62211.0, "pa": 63709.0, "pc": 59924.0, "mpa": 16649.0, "mpc": 16434.0}, "EMPAX": {"ba": 2040.0, "bc": 25320.0, "ma": 393241.0, "mc": 469904.0, "ya": 2040.0, "yc": 11012.0, "ymka": 134706.0, "ymkc": 162996.0, "pa": 1481.0, "pc": 3256.0, "mpa": 41018.0, "mpc": 41357.0}, "SILTRAN": {"ba": 29071.0, "bc": 65921.0, "ma": 1755519.0, "mc": 1941746.0, "ya": 13028.0, "yc": 24159.0, "ymka": 590872.0, "ymkc": 671512.0, "pa": 3839.0, "pc": 6925.0, "mpa": 149370.0, "mpc": 170760.0}, "METGLUCON": {"ba": 363560.0, "bc": 360548.0, "ma": 9595305.0, "mc": 9398326.0, "ya": 118482.0, "yc": 114395.0, "ymka": 3090561.0, "ymkc": 3078437.0, "pa": 31326.0, "pc": 27478.0, "mpa": 803805.0, "mpc": 796641.0}, "TERLOC": {"ba": 442397.0, "bc": 358881.0, "ma": 5653996.0, "mc": 5410028.0, "ya": 123230.0, "yc": 115236.0, "ymka": 1706099.0, "ymkc": 1763629.0, "pa": 33182.0, "pc": 30149.0, "mpa": 437118.0, "mpc": 456373.0}, "DIOVAN": {"ba": 936707.0, "bc": 868029.0, "ma": 10221268.0, "mc": 11288697.0, "ya": 285069.0, "yc": 273054.0, "ymka": 3371465.0, "ymkc": 3830097.0, "pa": 73745.0, "pc": 67316.0, "mpa": 903247.0, "mpc": 1004111.0}, "TELPRES": {"ba": 62226.0, "bc": 56691.0, "ma": 1170104.0, "mc": 1106098.0, "ya": 20020.0, "yc": 15267.0, "ymka": 370322.0, "ymkc": 361999.0, "pa": 4545.0, "pc": 4572.0, "mpa": 92880.0, "mpc": 92673.0}, "DAURAN": {"ba": 3562.0, "bc": 13480.0, "ma": 1038809.0, "mc": 1295985.0, "ya": 2015.0, "yc": 4931.0, "ymka": 388769.0, "ymkc": 461046.0, "pa": 709.0, "pc": 1226.0, "mpa": 111003.0, "mpc": 123549.0}, "PIXABAN": {"ba": 17775.0, "bc": 23602.0, "ma": 151455.0, "mc": 186125.0, "ya": 6597.0, "yc": 9044.0, "ymka": 52679.0, "ymkc": 66762.0, "pa": 1721.0, "pc": 2390.0, "mpa": 15061.0, "mpc": 17537.0}, "LEVITAL": {"ba": 12674.0, "bc": 14057.0, "ma": 776900.0, "mc": 796084.0, "ya": 4243.0, "yc": 4655.0, "ymka": 252959.0, "ymkc": 269795.0, "pa": 1181.0, "pc": 1168.0, "mpa": 66261.0, "mpc": 70070.0}, "VALIUM": {"ba": 554244.0, "bc": 520123.0, "ma": 188559.0, "mc": 204227.0, "ya": 178501.0, "yc": 179358.0, "ymka": 59065.0, "ymkc": 68738.0, "pa": 48444.0, "pc": 44757.0, "mpa": 15397.0, "mpc": 15991.0}, "PGB": {"ba": 80598.0, "bc": 75051.0, "ma": 2622636.0, "mc": 2669499.0, "ya": 22964.0, "yc": 24371.0, "ymka": 840184.0, "ymkc": 877599.0, "pa": 5996.0, "pc": 6107.0, "mpa": 219019.0, "mpc": 220546.0}, "QTP": {"ba": 27358.0, "bc": 23002.0, "ma": 3011532.0, "mc": 3168192.0, "ya": 6577.0, "yc": 7819.0, "ymka": 988171.0, "ymkc": 1055307.0, "pa": 1640.0, "pc": 1995.0, "mpa": 258296.0, "mpc": 271273.0}, "MADOPAR": {"ba": 337058.0, "bc": 334351.0, "ma": 0.0, "mc": 0.0, "ya": 109288.0, "yc": 109746.0, "ymka": 0.0, "ymkc": 0.0, "pa": 28116.0, "pc": 27956.0, "mpa": 0.0, "mpc": 0.0}, "ACNECLIN": {"ba": 144197.0, "bc": 145030.0, "ma": 308151.0, "mc": 301893.0, "ya": 41938.0, "yc": 39436.0, "ymka": 93047.0, "ymkc": 90131.0, "pa": 12432.0, "pc": 11324.0, "mpa": 26826.0, "mpc": 25930.0}, "CLOBESOL": {"ba": 155052.0, "bc": 174307.0, "ma": 1369835.0, "mc": 1272278.0, "ya": 51990.0, "yc": 56287.0, "ymka": 437260.0, "ymkc": 405017.0, "pa": 12799.0, "pc": 13529.0, "mpa": 107721.0, "mpc": 92635.0}, "MICOMAZOL": {"ba": 237238.0, "bc": 265542.0, "ma": 2635017.0, "mc": 2704804.0, "ya": 79153.0, "yc": 91981.0, "ymka": 888146.0, "ymkc": 820915.0, "pa": 20802.0, "pc": 23427.0, "mpa": 212574.0, "mpc": 217629.0}, "MICROSONA": {"ba": 298330.0, "bc": 306414.0, "ma": 623442.0, "mc": 661445.0, "ya": 90519.0, "yc": 96972.0, "ymka": 205588.0, "ymkc": 221162.0, "pa": 22365.0, "pc": 22777.0, "mpa": 55657.0, "mpc": 57319.0}, "PALDAR": {"ba": 144382.0, "bc": 170031.0, "ma": 443774.0, "mc": 499351.0, "ya": 51729.0, "yc": 60131.0, "ymka": 161569.0, "ymkc": 183688.0, "pa": 13564.0, "pc": 15045.0, "mpa": 39821.0, "mpc": 46280.0}, "ROACCUTAN": {"ba": 166588.0, "bc": 198075.0, "ma": 108783.0, "mc": 113892.0, "ya": 51488.0, "yc": 53820.0, "ymka": 29272.0, "ymkc": 33814.0, "pa": 15100.0, "pc": 15091.0, "mpa": 8449.0, "mpc": 9993.0}, "MAGNUS": {"ba": 864676.0, "bc": 834788.0, "ma": 2895872.0, "mc": 2887935.0, "ya": 283602.0, "yc": 287100.0, "ymka": 965561.0, "ymkc": 946046.0, "pa": 68637.0, "pc": 73015.0, "mpa": 241143.0, "mpc": 238989.0}, "TETRALGIN": {"ba": 372991.0, "bc": 380264.0, "ma": 587030.0, "mc": 821051.0, "ya": 126028.0, "yc": 123824.0, "ymka": 193238.0, "ymkc": 287364.0, "pa": 32036.0, "pc": 30664.0, "mpa": 43358.0, "mpc": 83378.0}, "LURAP": {"ba": 12247.0, "bc": 11243.0, "ma": 56788.0, "mc": 55903.0, "ya": 3387.0, "yc": 3778.0, "ymka": 18102.0, "ymkc": 18371.0, "pa": 892.0, "pc": 972.0, "mpa": 4908.0, "mpc": 4893.0}, "BREXIL": {"ba": 0.0, "bc": 104.0, "ma": 51613.0, "mc": 52627.0, "ya": 0.0, "yc": 104.0, "ymka": 16949.0, "ymkc": 18186.0, "pa": 0.0, "pc": 104.0, "mpa": 4466.0, "mpc": 5201.0}, "VALQUIR": {"ba": 7470.0, "bc": 13604.0, "ma": 212926.0, "mc": 250125.0, "ya": 2389.0, "yc": 5374.0, "ymka": 70853.0, "ymkc": 89619.0, "pa": 635.0, "pc": 1410.0, "mpa": 18867.0, "mpc": 22947.0}, "SIDERBLUT": {"ba": 805946.0, "bc": 829793.0, "ma": 999978.0, "mc": 1013222.0, "ya": 264868.0, "yc": 282754.0, "ymka": 329770.0, "ymkc": 341446.0, "pa": 70117.0, "pc": 72020.0, "mpa": 85418.0, "mpc": 87039.0}, "NEBILET": {"ba": 284277.0, "bc": 260988.0, "ma": 2817456.0, "mc": 2905870.0, "ya": 89009.0, "yc": 84869.0, "ymka": 910007.0, "ymkc": 971015.0, "pa": 22809.0, "pc": 21222.0, "mpa": 237377.0, "mpc": 254367.0}, "EXFORGE": {"ba": 305211.0, "bc": 302220.0, "ma": 2573392.0, "mc": 3067033.0, "ya": 97488.0, "yc": 94996.0, "ymka": 878001.0, "ymkc": 1050850.0, "pa": 25430.0, "pc": 25820.0, "mpa": 237160.0, "mpc": 276477.0}, "ISIS NAT": {"ba": 0.0, "bc": 2265.0, "ma": 29768.0, "mc": 179804.0, "ya": 0.0, "yc": 2265.0, "ymka": 24312.0, "ymkc": 73683.0, "pa": 0.0, "pc": 906.0, "mpa": 7992.0, "mpc": 19798.0}, "GYNODERM": {"ba": 8984.0, "bc": 5950.0, "ma": 156351.0, "mc": 66040.0, "ya": 651.0, "yc": 1862.0, "ymka": 49627.0, "ymkc": 20571.0, "pa": 283.0, "pc": 462.0, "mpa": 8041.0, "mpc": 5459.0}}, "ETICO": {"ACEMUK": {"ba": 3978109.0, "bc": 3790975.0, "ma": 639645.0, "mc": 621089.0, "ya": 950073.0, "yc": 744778.0, "ymka": 165648.0, "ymkc": 143859.0, "pa": 391175.0, "pc": 296868.0, "mpa": 68988.0, "mpc": 45512.0}, "AIREAL": {"ba": 177683.0, "bc": 233496.0, "ma": 1309572.0, "mc": 1239591.0, "ya": 50640.0, "yc": 69995.0, "ymka": 356272.0, "ymkc": 329045.0, "pa": 17276.0, "pc": 23346.0, "mpa": 115951.0, "mpc": 101318.0}, "HEXALER CORT": {"ba": 818422.0, "bc": 754220.0, "ma": 2605615.0, "mc": 2595152.0, "ya": 203410.0, "yc": 176452.0, "ymka": 682853.0, "ymkc": 635310.0, "pa": 79083.0, "pc": 66707.0, "mpa": 252793.0, "mpc": 199451.0}, "ALIDIAL": {"ba": 155755.0, "bc": 202131.0, "ma": 912881.0, "mc": 867291.0, "ya": 49156.0, "yc": 61684.0, "ymka": 265110.0, "ymkc": 258828.0, "pa": 14465.0, "pc": 17911.0, "mpa": 73526.0, "mpc": 71674.0}, "ALIDIAL L": {"ba": 0.0, "bc": 5997.0, "ma": 439630.0, "mc": 498934.0, "ya": 0.0, "yc": 3572.0, "ymka": 142563.0, "ymkc": 153150.0, "pa": 0.0, "pc": 1149.0, "mpa": 39703.0, "mpc": 40708.0}, "MOMETAX": {"ba": 149489.0, "bc": 153459.0, "ma": 290235.0, "mc": 273023.0, "ya": 46389.0, "yc": 48749.0, "ymka": 81316.0, "ymkc": 79747.0, "pa": 11439.0, "pc": 11395.0, "mpa": 22064.0, "mpc": 21843.0}, "BACTRIM": {"ba": 1267722.0, "bc": 1341168.0, "ma": 150795.0, "mc": 170969.0, "ya": 448117.0, "yc": 461205.0, "ymka": 53723.0, "ymkc": 58881.0, "pa": 119877.0, "pc": 114011.0, "mpa": 13659.0, "mpc": 14886.0}, "ACANTEX": {"ba": 370740.0, "bc": 305437.0, "ma": 64627.0, "mc": 46881.0, "ya": 95089.0, "yc": 82213.0, "ymka": 14511.0, "ymkc": 11494.0, "pa": 32818.0, "pc": 22622.0, "mpa": 4431.0, "mpc": 3097.0}, "DECADRON": {"ba": 475509.0, "bc": 443399.0, "ma": 422704.0, "mc": 388143.0, "ya": 139599.0, "yc": 144282.0, "ymka": 125371.0, "ymkc": 119601.0, "pa": 37499.0, "pc": 37899.0, "mpa": 31553.0, "mpc": 34405.0}, "MACROMAX": {"ba": 134528.0, "bc": 146359.0, "ma": 2505661.0, "mc": 2159983.0, "ya": 30533.0, "yc": 29070.0, "ymka": 666900.0, "ymkc": 600817.0, "pa": 12091.0, "pc": 10060.0, "mpa": 215404.0, "mpc": 142589.0}, "CEFALEXINA": {"ba": 928035.0, "bc": 963942.0, "ma": 779743.0, "mc": 701718.0, "ya": 323825.0, "yc": 332149.0, "ymka": 265904.0, "ymkc": 236841.0, "pa": 80331.0, "pc": 82232.0, "mpa": 63170.0, "mpc": 58759.0}, "CALCIO BASE": {"ba": 394160.0, "bc": 410025.0, "ma": 1314256.0, "mc": 1279241.0, "ya": 121160.0, "yc": 132531.0, "ymka": 393385.0, "ymkc": 414024.0, "pa": 32291.0, "pc": 35350.0, "mpa": 107746.0, "mpc": 108026.0}, "ISIS FREE": {"ba": 526920.0, "bc": 641565.0, "ma": 1105317.0, "mc": 1392154.0, "ya": 192628.0, "yc": 222491.0, "ymka": 402177.0, "ymkc": 500195.0, "pa": 54684.0, "pc": 55410.0, "mpa": 114381.0, "mpc": 127276.0}, "TRIP D3": {"ba": 224368.0, "bc": 276684.0, "ma": 7156388.0, "mc": 7477069.0, "ya": 67759.0, "yc": 80123.0, "ymka": 2086668.0, "ymkc": 2294874.0, "pa": 21134.0, "pc": 21115.0, "mpa": 590642.0, "mpc": 614683.0}, "DELTROX": {"ba": 3981.0, "bc": 6559.0, "ma": 1015791.0, "mc": 935592.0, "ya": 1278.0, "yc": 1681.0, "ymka": 302068.0, "ymkc": 297321.0, "pa": 325.0, "pc": 424.0, "mpa": 79406.0, "mpc": 75635.0}, "ENTRESTO": {"ba": 197784.0, "bc": 218376.0, "ma": 146607.0, "mc": 163750.0, "ya": 69773.0, "yc": 71947.0, "ymka": 47917.0, "ymkc": 54608.0, "pa": 17256.0, "pc": 19503.0, "mpa": 12581.0, "mpc": 13363.0}, "DILATREND": {"ba": 860568.0, "bc": 759260.0, "ma": 4549303.0, "mc": 4200315.0, "ya": 268014.0, "yc": 238568.0, "ymka": 1399712.0, "ymkc": 1364127.0, "pa": 71048.0, "pc": 58674.0, "mpa": 361864.0, "mpc": 348558.0}, "ROXOLAN": {"ba": 203685.0, "bc": 205797.0, "ma": 9644957.0, "mc": 9770796.0, "ya": 61717.0, "yc": 67437.0, "ymka": 2953537.0, "ymkc": 3266447.0, "pa": 16687.0, "pc": 16842.0, "mpa": 783322.0, "mpc": 848212.0}, "ROXOLAN PLUS": {"ba": 18803.0, "bc": 36655.0, "ma": 853457.0, "mc": 1179511.0, "ya": 7200.0, "yc": 13626.0, "ymka": 281726.0, "ymkc": 438186.0, "pa": 2114.0, "pc": 3479.0, "mpa": 78835.0, "mpc": 122765.0}, "SINTROM": {"ba": 780746.0, "bc": 746887.0, "ma": 208993.0, "mc": 198462.0, "ya": 239114.0, "yc": 239681.0, "ymka": 67859.0, "ymkc": 62211.0, "pa": 63709.0, "pc": 59924.0, "mpa": 16649.0, "mpc": 16434.0}, "EMPAX": {"ba": 2040.0, "bc": 25320.0, "ma": 393241.0, "mc": 469904.0, "ya": 2040.0, "yc": 11012.0, "ymka": 134706.0, "ymkc": 162996.0, "pa": 1481.0, "pc": 3256.0, "mpa": 41018.0, "mpc": 41357.0}, "SILTRAN": {"ba": 29071.0, "bc": 65921.0, "ma": 1755519.0, "mc": 1941746.0, "ya": 13028.0, "yc": 24159.0, "ymka": 590872.0, "ymkc": 671512.0, "pa": 3839.0, "pc": 6925.0, "mpa": 149370.0, "mpc": 170760.0}, "METGLUCON": {"ba": 363560.0, "bc": 360548.0, "ma": 9595305.0, "mc": 9398326.0, "ya": 118482.0, "yc": 114395.0, "ymka": 3090561.0, "ymkc": 3078437.0, "pa": 31326.0, "pc": 27478.0, "mpa": 803805.0, "mpc": 796641.0}, "TERLOC": {"ba": 442397.0, "bc": 358881.0, "ma": 5653996.0, "mc": 5410028.0, "ya": 123230.0, "yc": 115236.0, "ymka": 1706099.0, "ymkc": 1763629.0, "pa": 33182.0, "pc": 30149.0, "mpa": 437118.0, "mpc": 456373.0}, "DIOVAN": {"ba": 936707.0, "bc": 868029.0, "ma": 10221268.0, "mc": 11288697.0, "ya": 285069.0, "yc": 273054.0, "ymka": 3371465.0, "ymkc": 3830097.0, "pa": 73745.0, "pc": 67316.0, "mpa": 903247.0, "mpc": 1004111.0}, "TELPRES": {"ba": 62226.0, "bc": 56691.0, "ma": 1170104.0, "mc": 1106098.0, "ya": 20020.0, "yc": 15267.0, "ymka": 370322.0, "ymkc": 361999.0, "pa": 4545.0, "pc": 4572.0, "mpa": 92880.0, "mpc": 92673.0}, "DAURAN": {"ba": 3562.0, "bc": 13480.0, "ma": 1038809.0, "mc": 1295985.0, "ya": 2015.0, "yc": 4931.0, "ymka": 388769.0, "ymkc": 461046.0, "pa": 709.0, "pc": 1226.0, "mpa": 111003.0, "mpc": 123549.0}, "PIXABAN": {"ba": 17775.0, "bc": 23602.0, "ma": 151455.0, "mc": 186125.0, "ya": 6597.0, "yc": 9044.0, "ymka": 52679.0, "ymkc": 66762.0, "pa": 1721.0, "pc": 2390.0, "mpa": 15061.0, "mpc": 17537.0}, "LEVITAL": {"ba": 12674.0, "bc": 14057.0, "ma": 776900.0, "mc": 796084.0, "ya": 4243.0, "yc": 4655.0, "ymka": 252959.0, "ymkc": 269795.0, "pa": 1181.0, "pc": 1168.0, "mpa": 66261.0, "mpc": 70070.0}, "VALIUM": {"ba": 554244.0, "bc": 520123.0, "ma": 188559.0, "mc": 204227.0, "ya": 178501.0, "yc": 179358.0, "ymka": 59065.0, "ymkc": 68738.0, "pa": 48444.0, "pc": 44757.0, "mpa": 15397.0, "mpc": 15991.0}, "PGB": {"ba": 80598.0, "bc": 75051.0, "ma": 2622636.0, "mc": 2669499.0, "ya": 22964.0, "yc": 24371.0, "ymka": 840184.0, "ymkc": 877599.0, "pa": 5996.0, "pc": 6107.0, "mpa": 219019.0, "mpc": 220546.0}, "QTP": {"ba": 27358.0, "bc": 23002.0, "ma": 3011532.0, "mc": 3168192.0, "ya": 6577.0, "yc": 7819.0, "ymka": 988171.0, "ymkc": 1055307.0, "pa": 1640.0, "pc": 1995.0, "mpa": 258296.0, "mpc": 271273.0}, "MADOPAR": {"ba": 337058.0, "bc": 334351.0, "ma": 0.0, "mc": 0.0, "ya": 109288.0, "yc": 109746.0, "ymka": 0.0, "ymkc": 0.0, "pa": 28116.0, "pc": 27956.0, "mpa": 0.0, "mpc": 0.0}, "ACNECLIN": {"ba": 144197.0, "bc": 145030.0, "ma": 308151.0, "mc": 301893.0, "ya": 41938.0, "yc": 39436.0, "ymka": 93047.0, "ymkc": 90131.0, "pa": 12432.0, "pc": 11324.0, "mpa": 26826.0, "mpc": 25930.0}, "CLOBESOL": {"ba": 155052.0, "bc": 174307.0, "ma": 1369835.0, "mc": 1272278.0, "ya": 51990.0, "yc": 56287.0, "ymka": 437260.0, "ymkc": 405017.0, "pa": 12799.0, "pc": 13529.0, "mpa": 107721.0, "mpc": 92635.0}, "MICOMAZOL": {"ba": 237238.0, "bc": 265542.0, "ma": 587307.0, "mc": 614302.0, "ya": 79153.0, "yc": 91981.0, "ymka": 204291.0, "ymkc": 205666.0, "pa": 20802.0, "pc": 23427.0, "mpa": 46732.0, "mpc": 51243.0}, "MICROSONA": {"ba": 296425.0, "bc": 306407.0, "ma": 527596.0, "mc": 570979.0, "ya": 90315.0, "yc": 96972.0, "ymka": 169732.0, "ymkc": 189327.0, "pa": 22341.0, "pc": 22777.0, "mpa": 43492.0, "mpc": 47194.0}, "PALDAR": {"ba": 144382.0, "bc": 170031.0, "ma": 443774.0, "mc": 499351.0, "ya": 51729.0, "yc": 60131.0, "ymka": 161569.0, "ymkc": 183688.0, "pa": 13564.0, "pc": 15045.0, "mpa": 39821.0, "mpc": 46280.0}, "ROACCUTAN": {"ba": 166588.0, "bc": 198075.0, "ma": 108783.0, "mc": 113892.0, "ya": 51488.0, "yc": 53820.0, "ymka": 29272.0, "ymkc": 33814.0, "pa": 15100.0, "pc": 15091.0, "mpa": 8449.0, "mpc": 9993.0}, "MAGNUS": {"ba": 864676.0, "bc": 834788.0, "ma": 2895872.0, "mc": 2887935.0, "ya": 283602.0, "yc": 287100.0, "ymka": 965561.0, "ymkc": 946046.0, "pa": 68637.0, "pc": 73015.0, "mpa": 241143.0, "mpc": 238989.0}, "TETRALGIN": {"ba": 367470.0, "bc": 380097.0, "ma": 0.0, "mc": 0.0, "ya": 124442.0, "yc": 123824.0, "ymka": 0.0, "ymkc": 0.0, "pa": 31801.0, "pc": 30664.0, "mpa": 0.0, "mpc": 0.0}, "LURAP": {"ba": 12247.0, "bc": 11243.0, "ma": 56788.0, "mc": 55903.0, "ya": 3387.0, "yc": 3778.0, "ymka": 18102.0, "ymkc": 18371.0, "pa": 892.0, "pc": 972.0, "mpa": 4908.0, "mpc": 4893.0}, "BREXIL": {"ba": 0.0, "bc": 104.0, "ma": 51613.0, "mc": 52627.0, "ya": 0.0, "yc": 104.0, "ymka": 16949.0, "ymkc": 18186.0, "pa": 0.0, "pc": 104.0, "mpa": 4466.0, "mpc": 5201.0}, "VALQUIR": {"ba": 7470.0, "bc": 13604.0, "ma": 212926.0, "mc": 250125.0, "ya": 2389.0, "yc": 5374.0, "ymka": 70853.0, "ymkc": 89619.0, "pa": 635.0, "pc": 1410.0, "mpa": 18867.0, "mpc": 22947.0}, "SIDERBLUT": {"ba": 805946.0, "bc": 829793.0, "ma": 999966.0, "mc": 1013016.0, "ya": 264868.0, "yc": 282754.0, "ymka": 329758.0, "ymkc": 341348.0, "pa": 70117.0, "pc": 72020.0, "mpa": 85415.0, "mpc": 87023.0}, "NEBILET": {"ba": 284277.0, "bc": 260988.0, "ma": 2817456.0, "mc": 2905870.0, "ya": 89009.0, "yc": 84869.0, "ymka": 910007.0, "ymkc": 971015.0, "pa": 22809.0, "pc": 21222.0, "mpa": 237377.0, "mpc": 254367.0}, "EXFORGE": {"ba": 305211.0, "bc": 302220.0, "ma": 2573392.0, "mc": 3067033.0, "ya": 97488.0, "yc": 94996.0, "ymka": 878001.0, "ymkc": 1050850.0, "pa": 25430.0, "pc": 25820.0, "mpa": 237160.0, "mpc": 276477.0}, "ISIS NAT": {"ba": 0.0, "bc": 2265.0, "ma": 29768.0, "mc": 179804.0, "ya": 0.0, "yc": 2265.0, "ymka": 24312.0, "ymkc": 73683.0, "pa": 0.0, "pc": 906.0, "mpa": 7992.0, "mpc": 19798.0}, "GYNODERM": {"ba": 0.0, "bc": 0.0, "ma": 60390.0, "mc": 64222.0, "ya": 0.0, "yc": 0.0, "ymka": 19853.0, "ymkc": 20273.0, "pa": 0.0, "pc": 0.0, "mpa": 5385.0, "mpc": 5318.0}}, "POPULAR": {"ACEMUK": {"ba": 235517.0, "bc": 126140.0, "ma": 55388.0, "mc": 37813.0, "ya": 37490.0, "yc": 26734.0, "ymka": 19936.0, "ymkc": 12944.0, "pa": 14327.0, "pc": 10442.0, "mpa": 5018.0, "mpc": 3800.0}, "AIREAL": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "HEXALER CORT": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ALIDIAL": {"ba": 0.0, "bc": 0.0, "ma": 1723989.0, "mc": 1637590.0, "ya": 0.0, "yc": 0.0, "ymka": 600531.0, "ymkc": 558716.0, "pa": 0.0, "pc": 0.0, "mpa": 240822.0, "mpc": 208711.0}, "ALIDIAL L": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "MOMETAX": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "BACTRIM": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ACANTEX": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "DECADRON": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "MACROMAX": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "CEFALEXINA": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "CALCIO BASE": {"ba": 0.0, "bc": 0.0, "ma": 151233.0, "mc": 168582.0, "ya": 0.0, "yc": 0.0, "ymka": 41762.0, "ymkc": 47054.0, "pa": 0.0, "pc": 0.0, "mpa": 10055.0, "mpc": 12985.0}, "ISIS FREE": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "TRIP D3": {"ba": 0.0, "bc": 9293.0, "ma": 35988.0, "mc": 60178.0, "ya": 0.0, "yc": 4458.0, "ymka": 11280.0, "ymkc": 19985.0, "pa": 0.0, "pc": 1485.0, "mpa": 3836.0, "mpc": 7312.0}, "DELTROX": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ENTRESTO": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "DILATREND": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ROXOLAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ROXOLAN PLUS": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "SINTROM": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "EMPAX": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "SILTRAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "METGLUCON": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "TERLOC": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "DIOVAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "TELPRES": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "DAURAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "PIXABAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "LEVITAL": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "VALIUM": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "PGB": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "QTP": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "MADOPAR": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ACNECLIN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "CLOBESOL": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "MICOMAZOL": {"ba": 0.0, "bc": 0.0, "ma": 2047710.0, "mc": 2090502.0, "ya": 0.0, "yc": 0.0, "ymka": 683855.0, "ymkc": 615249.0, "pa": 0.0, "pc": 0.0, "mpa": 165842.0, "mpc": 166386.0}, "MICROSONA": {"ba": 1905.0, "bc": 7.0, "ma": 95846.0, "mc": 90466.0, "ya": 204.0, "yc": 0.0, "ymka": 35856.0, "ymkc": 31835.0, "pa": 24.0, "pc": 0.0, "mpa": 12165.0, "mpc": 10125.0}, "PALDAR": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ROACCUTAN": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "MAGNUS": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "TETRALGIN": {"ba": 5521.0, "bc": 167.0, "ma": 587030.0, "mc": 821051.0, "ya": 1586.0, "yc": 0.0, "ymka": 193238.0, "ymkc": 287364.0, "pa": 235.0, "pc": 0.0, "mpa": 43358.0, "mpc": 83378.0}, "LURAP": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "BREXIL": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "VALQUIR": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "SIDERBLUT": {"ba": 0.0, "bc": 0.0, "ma": 12.0, "mc": 206.0, "ya": 0.0, "yc": 0.0, "ymka": 12.0, "ymkc": 98.0, "pa": 0.0, "pc": 0.0, "mpa": 3.0, "mpc": 16.0}, "NEBILET": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "EXFORGE": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "ISIS NAT": {"ba": 0.0, "bc": 0.0, "ma": 0.0, "mc": 0.0, "ya": 0.0, "yc": 0.0, "ymka": 0.0, "ymkc": 0.0, "pa": 0.0, "pc": 0.0, "mpa": 0.0, "mpc": 0.0}, "GYNODERM": {"ba": 8984.0, "bc": 5950.0, "ma": 95961.0, "mc": 1818.0, "ya": 651.0, "yc": 1862.0, "ymka": 29774.0, "ymkc": 298.0, "pa": 283.0, "pc": 462.0, "mpa": 2656.0, "mpc": 141.0}}};
+
+function fmtNum(x){ return Math.round(x).toLocaleString('es-AR'); }
+function fmtPct(x){ return (x*100).toFixed(1).replace('.', ',') + '%'; }
+function fmtIE(x){ return x.toFixed(1).replace('.', ','); }
+function fmtPP(x){ const s = x>0?'+':''; return s + x.toFixed(2).replace('.', ',') + ' pp'; }
+
+function computeBlock(ba, bc, ma, mc){
+  const tant = ba + ma, tact = bc + mc;
+  const msa = tant>0 ? ba/tant : 0;
+  const msc = tact>0 ? bc/tact : 0;
+  let ie = 0;
+  if (ba>0 && tant>0 && tact>0) ie = (bc/ba) / (tact/tant) * 100;
+  const pp = (msc - msa) * 100;
+  return {ba,bc,msa,msc,ie,pp};
+}
+
+function ieClass(ie, ba){ if (ba===0) return 'neutral'; return ie>=100 ? 'good' : 'bad'; }
+function ppClass(pp){ return pp>0 ? 'good' : (pp<0 ? 'bad' : 'neutral'); }
+
+function renderDesktop(seg){
+  const body = document.getElementById('body');
+  body.innerHTML = '';
+  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0};
+  for(const brand of BRANDS){
+    const d = DATA[seg][brand]; if(!d) continue;
+    T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
+    T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
+    T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
+    const m = computeBlock(d.ba, d.bc, d.ma, d.mc);
+    const y = computeBlock(d.ya, d.yc, d.ymka, d.ymkc);
+    const p = computeBlock(d.pa, d.pc, d.mpa, d.mpc);
+    body.insertAdjacentHTML('beforeend', `
+      <tr data-brand="${brand}">
+        <td class="brand">${brand}</td>
+        <td class="num blk-mat">${fmtNum(d.ba)}</td>
+        <td class="num blk-mat">${fmtNum(d.bc)}</td>
+        <td class="num blk-mat">${fmtPct(m.msa)}</td>
+        <td class="num blk-mat">${fmtPct(m.msc)}</td>
+        <td class="num blk-mat ${ieClass(m.ie,d.ba)}">${fmtIE(m.ie)}</td>
+        <td class="num blk-mat ${ppClass(m.pp)}">${fmtPP(m.pp)}</td>
+        <td class="num blk-ytd">${fmtNum(d.ya)}</td>
+        <td class="num blk-ytd">${fmtNum(d.yc)}</td>
+        <td class="num blk-ytd">${fmtPct(y.msa)}</td>
+        <td class="num blk-ytd">${fmtPct(y.msc)}</td>
+        <td class="num blk-ytd ${ieClass(y.ie,d.ya)}">${fmtIE(y.ie)}</td>
+        <td class="num blk-ytd ${ppClass(y.pp)}">${fmtPP(y.pp)}</td>
+        <td class="num blk-mes">${fmtNum(d.pa)}</td>
+        <td class="num blk-mes">${fmtNum(d.pc)}</td>
+        <td class="num blk-mes">${fmtPct(p.msa)}</td>
+        <td class="num blk-mes">${fmtPct(p.msc)}</td>
+        <td class="num blk-mes ${ieClass(p.ie,d.pa)}">${fmtIE(p.ie)}</td>
+        <td class="num blk-mes ${ppClass(p.pp)}">${fmtPP(p.pp)}</td>
+      </tr>`);
+  }
+  const m = computeBlock(T.ba, T.bc, T.ma, T.mc);
+  const y = computeBlock(T.ya, T.yc, T.ymka, T.ymkc);
+  const p = computeBlock(T.pa, T.pc, T.mpa, T.mpc);
+  body.insertAdjacentHTML('beforeend', `
+    <tr class="total">
+      <td class="brand">TOTAL CARTERA</td>
+      <td class="num blk-mat">${fmtNum(T.ba)}</td><td class="num blk-mat">${fmtNum(T.bc)}</td>
+      <td class="num blk-mat">${fmtPct(m.msa)}</td><td class="num blk-mat">${fmtPct(m.msc)}</td>
+      <td class="num blk-mat ${ieClass(m.ie,T.ba)}">${fmtIE(m.ie)}</td>
+      <td class="num blk-mat ${ppClass(m.pp)}">${fmtPP(m.pp)}</td>
+      <td class="num blk-ytd">${fmtNum(T.ya)}</td><td class="num blk-ytd">${fmtNum(T.yc)}</td>
+      <td class="num blk-ytd">${fmtPct(y.msa)}</td><td class="num blk-ytd">${fmtPct(y.msc)}</td>
+      <td class="num blk-ytd ${ieClass(y.ie,T.ya)}">${fmtIE(y.ie)}</td>
+      <td class="num blk-ytd ${ppClass(y.pp)}">${fmtPP(y.pp)}</td>
+      <td class="num blk-mes">${fmtNum(T.pa)}</td><td class="num blk-mes">${fmtNum(T.pc)}</td>
+      <td class="num blk-mes">${fmtPct(p.msa)}</td><td class="num blk-mes">${fmtPct(p.msc)}</td>
+      <td class="num blk-mes ${ieClass(p.ie,T.pa)}">${fmtIE(p.ie)}</td>
+      <td class="num blk-mes ${ppClass(p.pp)}">${fmtPP(p.pp)}</td>
+    </tr>`);
+}
+
+function renderMobile(seg){
+  const cont = document.getElementById('cards');
+  cont.innerHTML = '';
+  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0};
+  for(const brand of BRANDS){
+    const d = DATA[seg][brand]; if(!d) continue;
+    T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
+    T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
+    T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
+    const m = computeBlock(d.ba, d.bc, d.ma, d.mc);
+    const y = computeBlock(d.ya, d.yc, d.ymka, d.ymkc);
+    const p = computeBlock(d.pa, d.pc, d.mpa, d.mpc);
+    cont.insertAdjacentHTML('beforeend', `
+      <div class="card" data-brand="${brand}">
+        <div class="brand"><span>${brand}</span></div>
+        <div class="blocks">
+          ${blockHTML('mat', 'MAT', 'Abr-26 vs Abr-25 (12m)', d.ba, d.bc, m)}
+          ${blockHTML('ytd', 'YTD', 'Ene-Abr 26 vs 25', d.ya, d.yc, y)}
+          ${blockHTML('mes', 'MES', 'Abr 2026 vs Abr 2025', d.pa, d.pc, p)}
+        </div>
+      </div>`);
+  }
+  const m = computeBlock(T.ba, T.bc, T.ma, T.mc);
+  const y = computeBlock(T.ya, T.yc, T.ymka, T.ymkc);
+  const p = computeBlock(T.pa, T.pc, T.mpa, T.mpc);
+  cont.insertAdjacentHTML('beforeend', `
+    <div class="card total" data-brand="__total__">
+      <div class="brand"><span>TOTAL CARTERA</span></div>
+      <div class="blocks">
+        ${blockHTML('mat', 'MAT', 'Abr-26 vs Abr-25 (12m)', T.ba, T.bc, m)}
+        ${blockHTML('ytd', 'YTD', 'Ene-Abr 26 vs 25', T.ya, T.yc, y)}
+        ${blockHTML('mes', 'MES', 'Abr 2026 vs Abr 2025', T.pa, T.pc, p)}
+      </div>
+    </div>`);
+}
+
+function blockHTML(klass, lbl, per, ba, bc, c){
+  const ieCls = ieClass(c.ie, ba);
+  const ppCls = ppClass(c.pp);
+  return `
+    <div class="block ${klass} blk-${klass}">
+      <div class="label"><span>${lbl}</span><span class="periodo">${per}</span></div>
+      <div class="grid">
+        <span class="k">U Marca Ant</span><span class="v">${fmtNum(ba)}</span>
+        <span class="k">U Marca Act</span><span class="v">${fmtNum(bc)}</span>
+        <span class="k">MS% Ant</span><span class="v">${fmtPct(c.msa)}</span>
+        <span class="k">MS% Act</span><span class="v">${fmtPct(c.msc)}</span>
+        <span class="k">IE</span><span class="v ${ieCls}">${fmtIE(c.ie)}</span>
+        <span class="k">Var pp</span><span class="v ${ppCls}">${fmtPP(c.pp)}</span>
+      </div>
+    </div>`;
+}
+
+function applyBlockVisibility(){
+  ['mat','ytd','mes'].forEach(k=>{
+    const on = document.querySelector('input[data-blk="'+k+'"]').checked;
+    // desktop: ocultar columnas con clase blk-{k} y los th del bloque
+    document.querySelectorAll('.blk-'+k).forEach(el=> el.classList.toggle('hidden', !on));
+    document.querySelectorAll('th.'+k).forEach(el=> el.classList.toggle('hidden', !on));
+  });
+}
+
+function applyFilter(){
+  const q = (document.getElementById('q').value || '').toUpperCase().trim();
+  document.querySelectorAll('#body tr, #cards .card').forEach(el=>{
+    const b = (el.dataset.brand || '').toUpperCase();
+    if (b === '__TOTAL__') return;
+    el.classList.toggle('hidden', q && !b.includes(q));
+  });
+}
+
+function render(seg){
+  renderDesktop(seg);
+  renderMobile(seg);
+  applyBlockVisibility();
+  applyFilter();
+}
+
+document.querySelectorAll('#segBtns button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#segBtns button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render(btn.dataset.seg);
+  });
+});
+document.querySelectorAll('input[data-blk]').forEach(cb=>{
+  cb.addEventListener('change', applyBlockVisibility);
+});
+document.getElementById('q').addEventListener('input', applyFilter);
+
+render('TOTAL');
+</script>
+</body>
+</html>
