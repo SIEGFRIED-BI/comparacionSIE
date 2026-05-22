@@ -30,6 +30,10 @@ COL_YTD_ACT = "Units\nYTD Apr 2026"
 COL_YTD_ANT = "Units\nYTD Apr 2025"
 COL_MES_ACT = "Units\nApr 2026"
 COL_MES_ANT = "Units\nApr 2025"
+COL_TRIM_ACT = "Units\nFeb  to  Apr 2026"      # Feb-Apr 2026
+COL_TRIM_ANT = "Units\nFeb  to  Apr 2025"      # Feb-Apr 2025
+COL_SEM_ACT  = "Units\nNov 2025 to  Apr 2026"  # Nov 2025-Apr 2026
+COL_SEM_ANT  = "Units\nNov 2024 to  Apr 2025"  # Nov 2024-Apr 2025
 COL_SEG     = "Market (E/OTC)\n"
 
 BRANDS = {
@@ -100,7 +104,9 @@ df["Molecules Long\n"] = df["Molecules Long\n"].astype(str).str.strip()
 df["Product\n"]        = df["Product\n"].astype(str).str.strip()
 df["Manufacturer\n"]   = df["Manufacturer\n"].astype(str).str.strip()
 df[COL_SEG]            = df[COL_SEG].astype(str).str.strip().str.upper()
-for c in [COL_MAT_ACT, COL_MAT_ANT, COL_YTD_ACT, COL_YTD_ANT, COL_MES_ACT, COL_MES_ANT]:
+for c in [COL_MAT_ACT, COL_MAT_ANT, COL_YTD_ACT, COL_YTD_ANT,
+          COL_MES_ACT, COL_MES_ANT, COL_TRIM_ACT, COL_TRIM_ANT,
+          COL_SEM_ACT, COL_SEM_ANT]:
     df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
 def aggregate(bdf, mdf, seg):
@@ -113,6 +119,10 @@ def aggregate(bdf, mdf, seg):
         "MYA": float(msel[COL_YTD_ANT].sum()), "MYC": float(msel[COL_YTD_ACT].sum()),
         "BPA": float(bsel[COL_MES_ANT].sum()), "BPC": float(bsel[COL_MES_ACT].sum()),
         "MPA": float(msel[COL_MES_ANT].sum()), "MPC": float(msel[COL_MES_ACT].sum()),
+        "BTA": float(bsel[COL_TRIM_ANT].sum()), "BTC": float(bsel[COL_TRIM_ACT].sum()),
+        "MTA": float(msel[COL_TRIM_ANT].sum()), "MTC": float(msel[COL_TRIM_ACT].sum()),
+        "BSA": float(bsel[COL_SEM_ANT].sum()), "BSC": float(bsel[COL_SEM_ACT].sum()),
+        "MSAS": float(msel[COL_SEM_ANT].sum()), "MSCS": float(msel[COL_SEM_ACT].sum()),
     }
 
 rows = []
@@ -365,6 +375,8 @@ for seg in SEGMENTS:
             "ba": r.BMA, "bc": r.BMC, "ma": r.MMA, "mc": r.MMC,
             "ya": r.BYA, "yc": r.BYC, "ymka": r.MYA, "ymkc": r.MYC,
             "pa": r.BPA, "pc": r.BPC, "mpa": r.MPA, "mpc": r.MPC,
+            "ta": r.BTA, "tc": r.BTC, "mta": r.MTA, "mtc": r.MTC,
+            "sa": r.BSA, "sc": r.BSC, "msa6": r.MSAS, "msc6": r.MSCS,
         }
 js_brands = json.dumps(brand_order, ensure_ascii=False)
 js_payload = json.dumps(js_data, ensure_ascii=False)
@@ -378,6 +390,7 @@ html = """<!doctype html>
 <style>
   :root {
     --mat: #4472C4; --ytd: #C65911; --mes: #548235;
+    --trim: #7030A0; --sem: #2E75B6;
     --bg: #f4f6fb; --card: #ffffff; --txt: #222; --muted: #6b7280;
     --line: #d0d0d0; --hdr: #305496;
   }
@@ -414,7 +427,7 @@ html = """<!doctype html>
   .tbl-wrap { background: var(--card); border-radius: 10px; overflow: auto;
               box-shadow: 0 1px 3px rgba(0,0,0,.06); max-height: 78vh;
               -webkit-overflow-scrolling: touch; }
-  table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; min-width: 1100px; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; min-width: 1800px; }
   th, td { border: 1px solid var(--line); padding: 6px 8px; }
   th { background: var(--hdr); color: #fff; text-align: center; font-weight: 600; }
   /* Header sticky en 2 niveles (la 2da fila pegada debajo de la 1ra) */
@@ -425,7 +438,15 @@ html = """<!doctype html>
   td.brand { font-weight: 700; background: #f7f9fc; white-space: nowrap;
              position: sticky; left: 0; z-index: 2;
              border-right: 2px solid #c0c0c0; }
-  th.mat { background: var(--mat); } th.ytd { background: var(--ytd); } th.mes { background: var(--mes); }
+  th.mat { background: var(--mat); } th.ytd { background: var(--ytd); }
+  th.mes { background: var(--mes); } th.trim { background: var(--trim); }
+  th.sem { background: var(--sem); }
+  /* Sort */
+  th[data-sort] { cursor: pointer; user-select: none; }
+  th[data-sort]:hover { filter: brightness(1.12); }
+  th[data-sort]::after { content: ' \\2195'; opacity: 0.45; font-size: 10px; }
+  th[data-sort].asc::after  { content: ' \\25B2'; opacity: 1; }
+  th[data-sort].desc::after { content: ' \\25BC'; opacity: 1; }
   td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   tr:nth-child(even) td:not(.brand) { background: #f9fbfd; }
   td.good { background: #e6f4ea !important; color: #0a6e0a; }
@@ -439,7 +460,7 @@ html = """<!doctype html>
     body { padding: 8px; }
     h1 { font-size: 16px; }
     .tbl-wrap { max-height: 70vh; border-radius: 8px; }
-    table { font-size: 11px; min-width: 1100px; }
+    table { font-size: 11px; min-width: 1800px; }
     th, td { padding: 5px 6px; }
     thead tr:nth-child(2) th { top: 28px; }
     .controls { padding: 8px; gap: 8px; }
@@ -479,6 +500,8 @@ html = """<!doctype html>
       <label><input type="checkbox" data-blk="mat" checked> MAT</label>
       <label><input type="checkbox" data-blk="ytd" checked> YTD</label>
       <label><input type="checkbox" data-blk="mes" checked> MES</label>
+      <label><input type="checkbox" data-blk="trim" checked> TRIM</label>
+      <label><input type="checkbox" data-blk="sem" checked> SEM</label>
     </span>
     <input class="search" id="q" placeholder="Buscar marca..."/>
     <button class="btn-export" id="btnPdf" type="button">Exportar PDF</button>
@@ -489,21 +512,29 @@ html = """<!doctype html>
     <table id="tbl">
       <thead>
         <tr>
-          <th rowspan="2">Marca</th>
-          <th class="mat" colspan="6">MAT (Apr 2026 vs Apr 2025)</th>
-          <th class="ytd" colspan="6">YTD (Ene-Abr 26 vs 25)</th>
-          <th class="mes" colspan="6">MES (Apr 2026 vs Apr 2025)</th>
+          <th rowspan="2" data-sort="brand">Marca</th>
+          <th class="mat blk-mat" colspan="6">MAT (Apr 2026 vs Apr 2025)</th>
+          <th class="ytd blk-ytd" colspan="6">YTD (Ene-Abr 26 vs 25)</th>
+          <th class="mes blk-mes" colspan="6">MES (Apr 2026 vs Apr 2025)</th>
+          <th class="trim blk-trim" colspan="6">TRIM (Feb-Abr 26 vs 25)</th>
+          <th class="sem blk-sem" colspan="6">SEM (Nov 25-Abr 26 vs Nov 24-Abr 25)</th>
         </tr>
         <tr>
-          <th class="mat">U Ant</th><th class="mat">U Act</th>
-          <th class="mat">MS% Ant</th><th class="mat">MS% Act</th>
-          <th class="mat">IE</th><th class="mat">Var pp</th>
-          <th class="ytd">U Ant</th><th class="ytd">U Act</th>
-          <th class="ytd">MS% Ant</th><th class="ytd">MS% Act</th>
-          <th class="ytd">IE</th><th class="ytd">Var pp</th>
-          <th class="mes">U Ant</th><th class="mes">U Act</th>
-          <th class="mes">MS% Ant</th><th class="mes">MS% Act</th>
-          <th class="mes">IE</th><th class="mes">Var pp</th>
+          <th class="mat blk-mat" data-sort="m.ba">U Ant</th><th class="mat blk-mat" data-sort="m.bc">U Act</th>
+          <th class="mat blk-mat" data-sort="m.msa">MS% Ant</th><th class="mat blk-mat" data-sort="m.msc">MS% Act</th>
+          <th class="mat blk-mat" data-sort="m.ie">IE</th><th class="mat blk-mat" data-sort="m.pp">Var pp</th>
+          <th class="ytd blk-ytd" data-sort="y.ba">U Ant</th><th class="ytd blk-ytd" data-sort="y.bc">U Act</th>
+          <th class="ytd blk-ytd" data-sort="y.msa">MS% Ant</th><th class="ytd blk-ytd" data-sort="y.msc">MS% Act</th>
+          <th class="ytd blk-ytd" data-sort="y.ie">IE</th><th class="ytd blk-ytd" data-sort="y.pp">Var pp</th>
+          <th class="mes blk-mes" data-sort="p.ba">U Ant</th><th class="mes blk-mes" data-sort="p.bc">U Act</th>
+          <th class="mes blk-mes" data-sort="p.msa">MS% Ant</th><th class="mes blk-mes" data-sort="p.msc">MS% Act</th>
+          <th class="mes blk-mes" data-sort="p.ie">IE</th><th class="mes blk-mes" data-sort="p.pp">Var pp</th>
+          <th class="trim blk-trim" data-sort="t.ba">U Ant</th><th class="trim blk-trim" data-sort="t.bc">U Act</th>
+          <th class="trim blk-trim" data-sort="t.msa">MS% Ant</th><th class="trim blk-trim" data-sort="t.msc">MS% Act</th>
+          <th class="trim blk-trim" data-sort="t.ie">IE</th><th class="trim blk-trim" data-sort="t.pp">Var pp</th>
+          <th class="sem blk-sem" data-sort="s.ba">U Ant</th><th class="sem blk-sem" data-sort="s.bc">U Act</th>
+          <th class="sem blk-sem" data-sort="s.msa">MS% Ant</th><th class="sem blk-sem" data-sort="s.msc">MS% Act</th>
+          <th class="sem blk-sem" data-sort="s.ie">IE</th><th class="sem blk-sem" data-sort="s.pp">Var pp</th>
         </tr>
       </thead>
       <tbody id="body"></tbody>
@@ -534,70 +565,93 @@ function computeBlock(ba, bc, ma, mc){
 function ieClass(ie, ba){ if (ba===0) return 'neutral'; return ie>=100 ? 'good' : 'bad'; }
 function ppClass(pp){ return pp>0 ? 'good' : (pp<0 ? 'bad' : 'neutral'); }
 
+function buildRow(brand, d){
+  return {
+    brand,
+    d,
+    m: computeBlock(d.ba, d.bc, d.ma, d.mc),
+    y: computeBlock(d.ya, d.yc, d.ymka, d.ymkc),
+    p: computeBlock(d.pa, d.pc, d.mpa, d.mpc),
+    t: computeBlock(d.ta, d.tc, d.mta, d.mtc),
+    s: computeBlock(d.sa, d.sc, d.msa6, d.msc6),
+  };
+}
+
+function rowHTML(r, isTotal){
+  const cls = isTotal ? 'total' : '';
+  return `
+    <tr data-brand="${r.brand}" class="${cls}">
+      <td class="brand">${r.brand}</td>
+      <td class="num blk-mat">${fmtNum(r.m.ba)}</td><td class="num blk-mat">${fmtNum(r.m.bc)}</td>
+      <td class="num blk-mat">${fmtPct(r.m.msa)}</td><td class="num blk-mat">${fmtPct(r.m.msc)}</td>
+      <td class="num blk-mat ${ieClass(r.m.ie,r.m.ba)}">${fmtIE(r.m.ie)}</td>
+      <td class="num blk-mat ${ppClass(r.m.pp)}">${fmtPP(r.m.pp)}</td>
+      <td class="num blk-ytd">${fmtNum(r.y.ba)}</td><td class="num blk-ytd">${fmtNum(r.y.bc)}</td>
+      <td class="num blk-ytd">${fmtPct(r.y.msa)}</td><td class="num blk-ytd">${fmtPct(r.y.msc)}</td>
+      <td class="num blk-ytd ${ieClass(r.y.ie,r.y.ba)}">${fmtIE(r.y.ie)}</td>
+      <td class="num blk-ytd ${ppClass(r.y.pp)}">${fmtPP(r.y.pp)}</td>
+      <td class="num blk-mes">${fmtNum(r.p.ba)}</td><td class="num blk-mes">${fmtNum(r.p.bc)}</td>
+      <td class="num blk-mes">${fmtPct(r.p.msa)}</td><td class="num blk-mes">${fmtPct(r.p.msc)}</td>
+      <td class="num blk-mes ${ieClass(r.p.ie,r.p.ba)}">${fmtIE(r.p.ie)}</td>
+      <td class="num blk-mes ${ppClass(r.p.pp)}">${fmtPP(r.p.pp)}</td>
+      <td class="num blk-trim">${fmtNum(r.t.ba)}</td><td class="num blk-trim">${fmtNum(r.t.bc)}</td>
+      <td class="num blk-trim">${fmtPct(r.t.msa)}</td><td class="num blk-trim">${fmtPct(r.t.msc)}</td>
+      <td class="num blk-trim ${ieClass(r.t.ie,r.t.ba)}">${fmtIE(r.t.ie)}</td>
+      <td class="num blk-trim ${ppClass(r.t.pp)}">${fmtPP(r.t.pp)}</td>
+      <td class="num blk-sem">${fmtNum(r.s.ba)}</td><td class="num blk-sem">${fmtNum(r.s.bc)}</td>
+      <td class="num blk-sem">${fmtPct(r.s.msa)}</td><td class="num blk-sem">${fmtPct(r.s.msc)}</td>
+      <td class="num blk-sem ${ieClass(r.s.ie,r.s.ba)}">${fmtIE(r.s.ie)}</td>
+      <td class="num blk-sem ${ppClass(r.s.pp)}">${fmtPP(r.s.pp)}</td>
+    </tr>`;
+}
+
+let sortState = { key: null, dir: null };
+
+function getSortValue(row, key){
+  if (key === 'brand') return row.brand;
+  const [blk, fld] = key.split('.');
+  return row[blk][fld];
+}
+
 function renderDesktop(seg){
   const body = document.getElementById('body');
   body.innerHTML = '';
-  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0};
+  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0,
+           ta:0,tc:0,mta:0,mtc:0,sa:0,sc:0,msa6:0,msc6:0};
+  const rows = [];
   for(const brand of BRANDS){
     const d = DATA[seg][brand]; if(!d) continue;
     T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
     T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
     T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
-    /* En POPULAR ocultamos marcas que no tienen unidades de marca en ningún período (todo cero) */
+    T.ta+=d.ta; T.tc+=d.tc; T.mta+=d.mta; T.mtc+=d.mtc;
+    T.sa+=d.sa; T.sc+=d.sc; T.msa6+=d.msa6; T.msc6+=d.msc6;
     if (seg === 'POPULAR' && (d.ba + d.bc + d.ya + d.yc + d.pa + d.pc) === 0) continue;
-    const m = computeBlock(d.ba, d.bc, d.ma, d.mc);
-    const y = computeBlock(d.ya, d.yc, d.ymka, d.ymkc);
-    const p = computeBlock(d.pa, d.pc, d.mpa, d.mpc);
-    body.insertAdjacentHTML('beforeend', `
-      <tr data-brand="${brand}">
-        <td class="brand">${brand}</td>
-        <td class="num blk-mat">${fmtNum(d.ba)}</td>
-        <td class="num blk-mat">${fmtNum(d.bc)}</td>
-        <td class="num blk-mat">${fmtPct(m.msa)}</td>
-        <td class="num blk-mat">${fmtPct(m.msc)}</td>
-        <td class="num blk-mat ${ieClass(m.ie,d.ba)}">${fmtIE(m.ie)}</td>
-        <td class="num blk-mat ${ppClass(m.pp)}">${fmtPP(m.pp)}</td>
-        <td class="num blk-ytd">${fmtNum(d.ya)}</td>
-        <td class="num blk-ytd">${fmtNum(d.yc)}</td>
-        <td class="num blk-ytd">${fmtPct(y.msa)}</td>
-        <td class="num blk-ytd">${fmtPct(y.msc)}</td>
-        <td class="num blk-ytd ${ieClass(y.ie,d.ya)}">${fmtIE(y.ie)}</td>
-        <td class="num blk-ytd ${ppClass(y.pp)}">${fmtPP(y.pp)}</td>
-        <td class="num blk-mes">${fmtNum(d.pa)}</td>
-        <td class="num blk-mes">${fmtNum(d.pc)}</td>
-        <td class="num blk-mes">${fmtPct(p.msa)}</td>
-        <td class="num blk-mes">${fmtPct(p.msc)}</td>
-        <td class="num blk-mes ${ieClass(p.ie,d.pa)}">${fmtIE(p.ie)}</td>
-        <td class="num blk-mes ${ppClass(p.pp)}">${fmtPP(p.pp)}</td>
-      </tr>`);
+    rows.push(buildRow(brand, d));
   }
-  const m = computeBlock(T.ba, T.bc, T.ma, T.mc);
-  const y = computeBlock(T.ya, T.yc, T.ymka, T.ymkc);
-  const p = computeBlock(T.pa, T.pc, T.mpa, T.mpc);
-  body.insertAdjacentHTML('beforeend', `
-    <tr class="total">
-      <td class="brand">TOTAL CARTERA</td>
-      <td class="num blk-mat">${fmtNum(T.ba)}</td><td class="num blk-mat">${fmtNum(T.bc)}</td>
-      <td class="num blk-mat">${fmtPct(m.msa)}</td><td class="num blk-mat">${fmtPct(m.msc)}</td>
-      <td class="num blk-mat ${ieClass(m.ie,T.ba)}">${fmtIE(m.ie)}</td>
-      <td class="num blk-mat ${ppClass(m.pp)}">${fmtPP(m.pp)}</td>
-      <td class="num blk-ytd">${fmtNum(T.ya)}</td><td class="num blk-ytd">${fmtNum(T.yc)}</td>
-      <td class="num blk-ytd">${fmtPct(y.msa)}</td><td class="num blk-ytd">${fmtPct(y.msc)}</td>
-      <td class="num blk-ytd ${ieClass(y.ie,T.ya)}">${fmtIE(y.ie)}</td>
-      <td class="num blk-ytd ${ppClass(y.pp)}">${fmtPP(y.pp)}</td>
-      <td class="num blk-mes">${fmtNum(T.pa)}</td><td class="num blk-mes">${fmtNum(T.pc)}</td>
-      <td class="num blk-mes">${fmtPct(p.msa)}</td><td class="num blk-mes">${fmtPct(p.msc)}</td>
-      <td class="num blk-mes ${ieClass(p.ie,T.pa)}">${fmtIE(p.ie)}</td>
-      <td class="num blk-mes ${ppClass(p.pp)}">${fmtPP(p.pp)}</td>
-    </tr>`);
+  if (sortState.key){
+    const k = sortState.key, dir = sortState.dir === 'asc' ? 1 : -1;
+    rows.sort((a,b)=>{
+      const va = getSortValue(a, k), vb = getSortValue(b, k);
+      if (typeof va === 'string') return dir * va.localeCompare(vb);
+      return dir * ((va||0) - (vb||0));
+    });
+  }
+  const totalRow = buildRow('TOTAL CARTERA', T);
+  body.insertAdjacentHTML('beforeend', rows.map(r=>rowHTML(r,false)).join(''));
+  body.insertAdjacentHTML('beforeend', rowHTML(totalRow, true));
+  document.querySelectorAll('th[data-sort]').forEach(th=>{
+    th.classList.remove('asc','desc');
+    if (sortState.key === th.dataset.sort && sortState.dir) th.classList.add(sortState.dir);
+  });
 }
 
 function applyBlockVisibility(){
-  ['mat','ytd','mes'].forEach(k=>{
-    const on = document.querySelector('input[data-blk="'+k+'"]').checked;
-    // desktop: ocultar columnas con clase blk-{k} y los th del bloque
+  ['mat','ytd','mes','trim','sem'].forEach(k=>{
+    const cb = document.querySelector('input[data-blk="'+k+'"]');
+    if (!cb) return;
+    const on = cb.checked;
     document.querySelectorAll('.blk-'+k).forEach(el=> el.classList.toggle('hidden', !on));
-    document.querySelectorAll('th.'+k).forEach(el=> el.classList.toggle('hidden', !on));
   });
 }
 
@@ -626,6 +680,23 @@ document.querySelectorAll('input[data-blk]').forEach(cb=>{
   cb.addEventListener('change', applyBlockVisibility);
 });
 document.getElementById('q').addEventListener('input', applyFilter);
+
+/* ---------- Sort por click en headers ---------- */
+document.querySelectorAll('th[data-sort]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const k = th.dataset.sort;
+    if (sortState.key === k){
+      if (sortState.dir === 'asc') sortState.dir = 'desc';
+      else if (sortState.dir === 'desc') { sortState.key = null; sortState.dir = null; }
+      else sortState.dir = 'asc';
+    } else {
+      sortState.key = k;
+      sortState.dir = (k === 'brand') ? 'asc' : 'desc';
+    }
+    const seg = document.querySelector('#segBtns .active').dataset.seg;
+    render(seg);
+  });
+});
 
 /* ---------- Export PDF / PNG ---------- */
 async function captureTable(){
