@@ -415,20 +415,39 @@ html = """<!doctype html>
   .mobile  { display: none; }
 
   .tbl-wrap { background: var(--card); border-radius: 10px; overflow: auto;
-              box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 1100px; }
+              box-shadow: 0 1px 3px rgba(0,0,0,.06); max-height: 78vh; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; min-width: 1100px; }
   th, td { border: 1px solid var(--line); padding: 6px 8px; }
-  th { background: var(--hdr); color: #fff; text-align: center; font-weight: 600;
-       position: sticky; top: 0; z-index: 2; }
-  th.mat { background: var(--mat); } th.ytd { background: var(--ytd); } th.mes { background: var(--mes); }
-  td.brand { font-weight: 700; background: #f7f9fc; white-space: nowrap; position: sticky; left: 0; z-index: 1;
+  th { background: var(--hdr); color: #fff; text-align: center; font-weight: 600; }
+  /* Sticky header rows: la primera arriba, la segunda debajo de la primera */
+  thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 3; }
+  thead tr:nth-child(2) th { position: sticky; top: 30px; z-index: 3; }
+  /* Sticky primera columna (encabezado y body) */
+  thead tr:nth-child(1) th:first-child { left: 0; z-index: 5; background: var(--hdr); }
+  td.brand { font-weight: 700; background: #f7f9fc; white-space: nowrap;
+             position: sticky; left: 0; z-index: 2;
              border-right: 2px solid #c0c0c0; }
+  th.mat { background: var(--mat); } th.ytd { background: var(--ytd); } th.mes { background: var(--mes); }
   td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   tr:nth-child(even) td:not(.brand) { background: #f9fbfd; }
   td.good { background: #e6f4ea !important; color: #0a6e0a; }
   td.bad  { background: #fdecec !important; color: #9c0006; }
   td.neutral { color: #555; }
   tr.total td { background: #FFE699 !important; font-weight: 800; }
+  tr.total td.brand { background: #FFE699 !important; }
+  /* Botones export */
+  .btn-export { padding: 8px 12px; border: 1px solid #888; background: #fff; cursor: pointer;
+                font-weight: 600; font-size: 13px; border-radius: 6px; min-height: 38px; }
+  .btn-export:hover { background: #f0f0f0; }
+  .btn-export[disabled] { opacity: .6; cursor: progress; }
+  /* Modo export: desactiva sticky + scroll para render limpio */
+  .exporting .tbl-wrap { overflow: visible !important; max-height: none !important; }
+  .exporting thead tr:nth-child(1) th,
+  .exporting thead tr:nth-child(2) th,
+  .exporting td.brand { position: static !important; }
+  .exporting .controls { display: none !important; }
+  .exporting .desktop { display: block !important; }
+  .exporting .mobile { display: none !important; }
 
   /* ----- MOBILE (cards) ----- */
   @media (max-width: 760px) {
@@ -479,6 +498,8 @@ html = """<!doctype html>
       <label><input type="checkbox" data-blk="mes" checked> MES</label>
     </span>
     <input class="search" id="q" placeholder="Buscar marca..."/>
+    <button class="btn-export" id="btnPdf" type="button">Exportar PDF</button>
+    <button class="btn-export" id="btnPng" type="button">Exportar imagen</button>
   </div>
 
   <div class="desktop">
@@ -512,8 +533,8 @@ html = """<!doctype html>
     <div class="cards" id="cards"></div>
   </div>
 
-  <div class="footer">v3 · IE = ((Marca Act / Marca Ant) / (Mercado Act / Mercado Ant)) × 100</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const BRANDS = __BRANDS__;
 const DATA = __DATA__;
@@ -681,6 +702,55 @@ document.querySelectorAll('input[data-blk]').forEach(cb=>{
   cb.addEventListener('change', applyBlockVisibility);
 });
 document.getElementById('q').addEventListener('input', applyFilter);
+
+/* ---------- Export PDF / PNG ---------- */
+async function captureTable(){
+  document.body.classList.add('exporting');
+  await new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const target = document.querySelector('#tbl');
+  const canvas = await html2canvas(target, {
+    scale: 2, backgroundColor: '#ffffff', useCORS: true,
+    windowWidth: Math.max(1400, target.scrollWidth),
+  });
+  document.body.classList.remove('exporting');
+  return canvas;
+}
+
+async function exportPDF(){
+  const btn = document.getElementById('btnPdf');
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Generando PDF...';
+  try {
+    const canvas = await captureTable();
+    const { jsPDF } = window.jspdf;
+    /* Hoja a la medida del contenido para que TODO entre legible en una página */
+    const w_mm = 420; /* A3 width */
+    const ratio = canvas.height / canvas.width;
+    const h_mm = w_mm * ratio + 12;
+    const pdf = new jsPDF({ orientation: w_mm >= h_mm ? 'landscape' : 'portrait',
+                            unit: 'mm', format: [w_mm, h_mm], compress: true });
+    pdf.setFontSize(11); pdf.setTextColor(60);
+    pdf.text('Comparativa Marca vs Mercado — ' + (document.querySelector('#segBtns .active')?.textContent || ''), 6, 8);
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 6, 12, w_mm - 12, h_mm - 14);
+    pdf.save('Comparativa_Marcas.pdf');
+  } catch(e){ alert('No se pudo generar el PDF: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = old; }
+}
+
+async function exportPNG(){
+  const btn = document.getElementById('btnPng');
+  btn.disabled = true; const old = btn.textContent; btn.textContent = 'Generando imagen...';
+  try {
+    const canvas = await captureTable();
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'Comparativa_Marcas.png';
+    a.click();
+  } catch(e){ alert('No se pudo generar la imagen: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = old; }
+}
+
+document.getElementById('btnPdf').addEventListener('click', exportPDF);
+document.getElementById('btnPng').addEventListener('click', exportPNG);
 
 render('TOTAL');
 </script>
