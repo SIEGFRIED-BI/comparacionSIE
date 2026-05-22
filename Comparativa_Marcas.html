@@ -172,6 +172,8 @@ function renderDesktop(seg){
     T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
     T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
     T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
+    /* En POPULAR ocultamos marcas que no tienen unidades de marca en ningún período (todo cero) */
+    if (seg === 'POPULAR' && (d.ba + d.bc + d.ya + d.yc + d.pa + d.pc) === 0) continue;
     const m = computeBlock(d.ba, d.bc, d.ma, d.mc);
     const y = computeBlock(d.ya, d.yc, d.ymka, d.ymkc);
     const p = computeBlock(d.pa, d.pc, d.mpa, d.mpc);
