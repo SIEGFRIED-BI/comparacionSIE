@@ -39,19 +39,17 @@
   .search { flex: 1 1 160px; min-width: 140px; padding: 8px 10px; border-radius: 6px;
             border: 1px solid #ccc; font-size: 13px; }
 
-  /* ----- DESKTOP / TABLET (table) ----- */
-  .desktop { display: block; }
-  .mobile  { display: none; }
-
+  /* ----- TABLA (siempre, también en mobile) ----- */
   .tbl-wrap { background: var(--card); border-radius: 10px; overflow: auto;
-              box-shadow: 0 1px 3px rgba(0,0,0,.06); max-height: 78vh; }
+              box-shadow: 0 1px 3px rgba(0,0,0,.06); max-height: 78vh;
+              -webkit-overflow-scrolling: touch; }
   table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; min-width: 1100px; }
   th, td { border: 1px solid var(--line); padding: 6px 8px; }
   th { background: var(--hdr); color: #fff; text-align: center; font-weight: 600; }
-  /* Sticky header rows: la primera arriba, la segunda debajo de la primera */
+  /* Header sticky en 2 niveles (la 2da fila pegada debajo de la 1ra) */
   thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 3; }
   thead tr:nth-child(2) th { position: sticky; top: 30px; z-index: 3; }
-  /* Sticky primera columna (encabezado y body) */
+  /* Marca sticky en horizontal */
   thead tr:nth-child(1) th:first-child { left: 0; z-index: 5; background: var(--hdr); }
   td.brand { font-weight: 700; background: #f7f9fc; white-space: nowrap;
              position: sticky; left: 0; z-index: 2;
@@ -64,6 +62,22 @@
   td.neutral { color: #555; }
   tr.total td { background: #FFE699 !important; font-weight: 800; }
   tr.total td.brand { background: #FFE699 !important; }
+
+  /* En mobile achicamos un poco padding/fuente pero seguimos tabla */
+  @media (max-width: 760px) {
+    body { padding: 8px; }
+    h1 { font-size: 16px; }
+    .tbl-wrap { max-height: 70vh; border-radius: 8px; }
+    table { font-size: 11px; min-width: 1100px; }
+    th, td { padding: 5px 6px; }
+    thead tr:nth-child(2) th { top: 28px; }
+    .controls { padding: 8px; gap: 8px; }
+    .seg-btns button { padding: 6px 10px; font-size: 12px; min-height: 34px; }
+    .blk-toggle label { font-size: 11px; padding: 5px 6px; }
+    .search { font-size: 12px; padding: 6px 8px; }
+    .btn-export { font-size: 12px; padding: 6px 10px; min-height: 34px; }
+  }
+
   /* Botones export */
   .btn-export { padding: 8px 12px; border: 1px solid #888; background: #fff; cursor: pointer;
                 font-weight: 600; font-size: 13px; border-radius: 6px; min-height: 38px; }
@@ -75,39 +89,8 @@
   .exporting thead tr:nth-child(2) th,
   .exporting td.brand { position: static !important; }
   .exporting .controls { display: none !important; }
-  .exporting .desktop { display: block !important; }
-  .exporting .mobile { display: none !important; }
 
-  /* ----- MOBILE (cards) ----- */
-  @media (max-width: 760px) {
-    body { padding: 10px; }
-    .desktop { display: none; }
-    .mobile  { display: block; }
-  }
-  .cards { display: grid; gap: 10px; }
-  .card {
-    background: var(--card); border-radius: 12px; padding: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  }
-  .card .brand { font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; }
-  .card .brand .mol { font-size: 11px; font-weight: 400; color: var(--muted); }
-  .blocks { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .block { border-radius: 8px; padding: 8px 10px; }
-  .block.mat { background: #eef3fc; } .block.ytd { background: #fdeede; } .block.mes { background: #ebf3e3; }
-  .block .label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 13px; }
-  .block .label .periodo { font-size: 11px; color: var(--muted); font-weight: 500; }
-  .grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
-    font-size: 12px; margin-top: 6px;
-  }
-  .grid .k { color: var(--muted); }
-  .grid .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-  .grid .v.good { color: #0a6e0a; }
-  .grid .v.bad  { color: #9c0006; }
-  .card.total { background: #fff9e6; border: 1px solid #f1c40f; }
   .hidden { display: none !important; }
-
-  .footer { color: var(--muted); font-size: 11px; margin-top: 14px; text-align: center; }
 </style>
 </head>
 <body>
@@ -131,35 +114,29 @@
     <button class="btn-export" id="btnPng" type="button">Exportar imagen</button>
   </div>
 
-  <div class="desktop">
-    <div class="tbl-wrap">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th rowspan="2">Marca</th>
-            <th class="mat" colspan="6">MAT (Apr 2026 vs Apr 2025)</th>
-            <th class="ytd" colspan="6">YTD (Ene-Abr 26 vs 25)</th>
-            <th class="mes" colspan="6">MES (Apr 2026 vs Apr 2025)</th>
-          </tr>
-          <tr>
-            <th class="mat">U Ant</th><th class="mat">U Act</th>
-            <th class="mat">MS% Ant</th><th class="mat">MS% Act</th>
-            <th class="mat">IE</th><th class="mat">Var pp</th>
-            <th class="ytd">U Ant</th><th class="ytd">U Act</th>
-            <th class="ytd">MS% Ant</th><th class="ytd">MS% Act</th>
-            <th class="ytd">IE</th><th class="ytd">Var pp</th>
-            <th class="mes">U Ant</th><th class="mes">U Act</th>
-            <th class="mes">MS% Ant</th><th class="mes">MS% Act</th>
-            <th class="mes">IE</th><th class="mes">Var pp</th>
-          </tr>
-        </thead>
-        <tbody id="body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="mobile">
-    <div class="cards" id="cards"></div>
+  <div class="tbl-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th rowspan="2">Marca</th>
+          <th class="mat" colspan="6">MAT (Apr 2026 vs Apr 2025)</th>
+          <th class="ytd" colspan="6">YTD (Ene-Abr 26 vs 25)</th>
+          <th class="mes" colspan="6">MES (Apr 2026 vs Apr 2025)</th>
+        </tr>
+        <tr>
+          <th class="mat">U Ant</th><th class="mat">U Act</th>
+          <th class="mat">MS% Ant</th><th class="mat">MS% Act</th>
+          <th class="mat">IE</th><th class="mat">Var pp</th>
+          <th class="ytd">U Ant</th><th class="ytd">U Act</th>
+          <th class="ytd">MS% Ant</th><th class="ytd">MS% Act</th>
+          <th class="ytd">IE</th><th class="ytd">Var pp</th>
+          <th class="mes">U Ant</th><th class="mes">U Act</th>
+          <th class="mes">MS% Ant</th><th class="mes">MS% Act</th>
+          <th class="mes">IE</th><th class="mes">Var pp</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -242,59 +219,6 @@ function renderDesktop(seg){
     </tr>`);
 }
 
-function renderMobile(seg){
-  const cont = document.getElementById('cards');
-  cont.innerHTML = '';
-  let T = {ba:0,bc:0,ma:0,mc:0,ya:0,yc:0,ymka:0,ymkc:0,pa:0,pc:0,mpa:0,mpc:0};
-  for(const brand of BRANDS){
-    const d = DATA[seg][brand]; if(!d) continue;
-    T.ba+=d.ba; T.bc+=d.bc; T.ma+=d.ma; T.mc+=d.mc;
-    T.ya+=d.ya; T.yc+=d.yc; T.ymka+=d.ymka; T.ymkc+=d.ymkc;
-    T.pa+=d.pa; T.pc+=d.pc; T.mpa+=d.mpa; T.mpc+=d.mpc;
-    const m = computeBlock(d.ba, d.bc, d.ma, d.mc);
-    const y = computeBlock(d.ya, d.yc, d.ymka, d.ymkc);
-    const p = computeBlock(d.pa, d.pc, d.mpa, d.mpc);
-    cont.insertAdjacentHTML('beforeend', `
-      <div class="card" data-brand="${brand}">
-        <div class="brand"><span>${brand}</span></div>
-        <div class="blocks">
-          ${blockHTML('mat', 'MAT', 'Abr-26 vs Abr-25 (12m)', d.ba, d.bc, m)}
-          ${blockHTML('ytd', 'YTD', 'Ene-Abr 26 vs 25', d.ya, d.yc, y)}
-          ${blockHTML('mes', 'MES', 'Abr 2026 vs Abr 2025', d.pa, d.pc, p)}
-        </div>
-      </div>`);
-  }
-  const m = computeBlock(T.ba, T.bc, T.ma, T.mc);
-  const y = computeBlock(T.ya, T.yc, T.ymka, T.ymkc);
-  const p = computeBlock(T.pa, T.pc, T.mpa, T.mpc);
-  cont.insertAdjacentHTML('beforeend', `
-    <div class="card total" data-brand="__total__">
-      <div class="brand"><span>TOTAL CARTERA</span></div>
-      <div class="blocks">
-        ${blockHTML('mat', 'MAT', 'Abr-26 vs Abr-25 (12m)', T.ba, T.bc, m)}
-        ${blockHTML('ytd', 'YTD', 'Ene-Abr 26 vs 25', T.ya, T.yc, y)}
-        ${blockHTML('mes', 'MES', 'Abr 2026 vs Abr 2025', T.pa, T.pc, p)}
-      </div>
-    </div>`);
-}
-
-function blockHTML(klass, lbl, per, ba, bc, c){
-  const ieCls = ieClass(c.ie, ba);
-  const ppCls = ppClass(c.pp);
-  return `
-    <div class="block ${klass} blk-${klass}">
-      <div class="label"><span>${lbl}</span><span class="periodo">${per}</span></div>
-      <div class="grid">
-        <span class="k">U Marca Ant</span><span class="v">${fmtNum(ba)}</span>
-        <span class="k">U Marca Act</span><span class="v">${fmtNum(bc)}</span>
-        <span class="k">MS% Ant</span><span class="v">${fmtPct(c.msa)}</span>
-        <span class="k">MS% Act</span><span class="v">${fmtPct(c.msc)}</span>
-        <span class="k">IE</span><span class="v ${ieCls}">${fmtIE(c.ie)}</span>
-        <span class="k">Var pp</span><span class="v ${ppCls}">${fmtPP(c.pp)}</span>
-      </div>
-    </div>`;
-}
-
 function applyBlockVisibility(){
   ['mat','ytd','mes'].forEach(k=>{
     const on = document.querySelector('input[data-blk="'+k+'"]').checked;
@@ -306,16 +230,14 @@ function applyBlockVisibility(){
 
 function applyFilter(){
   const q = (document.getElementById('q').value || '').toUpperCase().trim();
-  document.querySelectorAll('#body tr, #cards .card').forEach(el=>{
+  document.querySelectorAll('#body tr').forEach(el=>{
     const b = (el.dataset.brand || '').toUpperCase();
-    if (b === '__TOTAL__') return;
     el.classList.toggle('hidden', q && !b.includes(q));
   });
 }
 
 function render(seg){
   renderDesktop(seg);
-  renderMobile(seg);
   applyBlockVisibility();
   applyFilter();
 }
